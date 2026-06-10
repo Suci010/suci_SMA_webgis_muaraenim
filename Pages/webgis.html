@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WEB GIS SMA MUARA ENIM</title>
+
+    <!-- LEAFLET CSS -->
+    <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        /* HEADER */
+        .navbar {
+            background-color: #0d6efd;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        /* PETA */
+        #map {
+            width: 100%;
+            height: 92vh;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <div class="navbar">
+        WEB GIS PERSEBARAN SMA KABUPATEN MUARA ENIM
+    </div>
+
+    <!-- PETA -->
+    <div id="map"></div>
+
+    <!-- LEAFLET JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+
+        // =====================================
+        // MEMBUAT PETA
+        // =====================================
+
+        var map = L.map('map').setView([-3.651, 103.774], 10);
+
+        // =====================================
+        // BASEMAP
+        // =====================================
+
+        L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {
+                attribution: '&copy; OpenStreetMap'
+            }
+        ).addTo(map);
+
+        // =====================================
+        // ICON LOKASI
+        // =====================================
+
+        var iconSekolah = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+
+            iconSize: [35, 35],
+            iconAnchor: [17, 35],
+            popupAnchor: [0, -35]
+        });
+
+        // =====================================
+        // MEMANGGIL FILE GEOJSON
+        // =====================================
+
+        fetch("../Data/untitled.geojson")
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("GeoJSON tidak ditemukan");
+        }
+        return response.json();
+    })
+
+        .then(function(data) {
+
+            // =================================
+            // MENAMPILKAN GEOJSON
+            // =================================
+
+            var geojsonLayer = L.geoJSON(data, {
+
+                // MARKER ICON
+                pointToLayer: function(feature, latlng) {
+
+                    return L.marker(latlng, {
+                        icon: iconSekolah
+                    });
+
+                },
+
+                // POPUP
+                onEachFeature: function(feature, layer) {
+
+                    var popupContent = "";
+
+                    // MENAMPILKAN SEMUA ATRIBUT
+                    for (var key in feature.properties) {
+
+                        popupContent +=
+                            "<b>" + key + "</b> : " +
+                            feature.properties[key] +
+                            "<br>";
+
+                    }
+
+                    layer.bindPopup(popupContent);
+
+                }
+
+            }).addTo(map);
+
+            // =================================
+            // ZOOM KE SEMUA TITIK
+            // =================================
+
+            map.fitBounds(geojsonLayer.getBounds());
+
+        })
+
+        .catch(function(error) {
+
+            console.log("ERROR :", error);
+
+        });
+
+    </script>
+
+</body>
+
+</html>
